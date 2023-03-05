@@ -123,11 +123,42 @@ button.addEventListener('click', p.showMessage);
 
 // --- 
 
-function Required() {}
+interface ValidatorConfig {
+	[property: string]: {
+		[validatableProp: string]: string[] // ['required', 'positive']
+	}
+}
 
-function PositiveNumber() {}
+const registeredValidators: ValidatorConfig = {};
 
-function validate(obj: object) {}
+function Required(target: any, propName: string) {
+	registeredValidators[target.contructor.name] = {
+		[propName]: ['required']
+	};
+}
+
+function PositiveNumber(target: any, propName: string) {
+	registeredValidators[target.contructor.name] = {
+		[propName]: ['positive']
+	};
+}
+
+function validate(obj: any) {
+	const objValidatorConfig = registeredValidators[obj.constructor.name];
+	if (!objValidatorConfig) {
+		return true;
+	}
+	for (const prop in objValidatorConfig) {
+		for (const validator of objValidatorConfig[prop]) {
+			switch (validator) {
+				case 'required':
+					return !!obj[prop];
+				case 'positive':
+					return obj[prop] > 0;
+			}
+		}
+	}
+}
 
 class Course {
 	@Required
